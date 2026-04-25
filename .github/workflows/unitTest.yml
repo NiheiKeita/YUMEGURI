@@ -1,0 +1,181 @@
+name: unitTest
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: PHP (PHPStan / PHPCS / PHPUnit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ./src
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: intl, pdo_sqlite, zip, bcmath, mbstring
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('src/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          mkdir -p database
+          touch database/database.sqlite
+          php artisan migrate --force
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyze --no-progress
+
+      - name: PHPCS
+        run: composer phpcs .
+
+      - name: PHPUnit (with coverage)
+        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+
+      - name: Upload PHP coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: src/coverage.xml
+          flags: backend
+          name: php-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      # PR コメントで PHP カバレッジを可視化（Codecov とは別経路）
+      - name: Generate PHP coverage markdown
+        if: github.event_name == 'pull_request'
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: src/coverage.xml
+          badge: true
+          format: markdown
+          output: both
+          thresholds: '60 80'    # 60%未満=赤 / 80%以上=緑（AGENTS.md §5.1）
+
+      - name: Post PHP coverage PR comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: backend-coverage
+          recreate: true
+          path: code-coverage-results.md
+
+  frontend:
+    name: Frontend (ESLint / TypeScript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ./src
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: src/package-lock.json
+
+      - name: Install npm dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript type-check
+        run: npm run type-check
+
+  storybook:
+    name: Storybook (Vitest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ./src
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+          cache-dependency-path: src/package-lock.json
+
+      - name: Install npm dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "version=$(node -e
+          "console.log(require('playwright/package.json').version)")" >>
+          "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium --with-deps
+
+      - name: Install Playwright system deps (cache hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run Vitest with coverage (all projects — storybook + 将来の unit)
+        env:
+          # laravel-vite-plugin は CI 環境で HMR サーバ起動を拒否するが、
+          # Vitest ではビルドサーバを立てないので問題なく素通りさせてよい
+          LARAVEL_BYPASS_ENV_CHECK: "1"
+        # --project 指定を外すことで、projects[] に追加したテストが全て走り
+        # coverage も自動マージされる（例: 将来 unit プロジェクトを追加した時）
+        run: npx vitest run --coverage
+
+      # PR コメントで Vitest カバレッジを可視化
+      - name: Report Vitest coverage to PR
+        if: always() && github.event_name == 'pull_request'
+        uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          working-directory: ./src
+          name: Frontend (Vitest)
+
+      - name: Upload frontend coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: src/coverage/clover.xml
+          flags: frontend
+          name: storybook-vitest-coverage
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}

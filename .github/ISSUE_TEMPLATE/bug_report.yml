@@ -1,0 +1,44 @@
+name: 🐛 Bug Report
+description: 不具合を報告する
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 発生している問題
+      description: 何が起きているか簡潔に書いてください
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 再現手順
+      description: どうやると再現できるか
+      placeholder: |
+        1. '...' に移動
+        2. '....' をクリック
+        3. エラーが表示される
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する挙動
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 環境
+      description: OS / ブラウザ / PHP / Node のバージョンなど
+      value: |
+        - OS:
+        - ブラウザ:
+        - PHP:
+        - Node:
+  - type: textarea
+    id: logs
+    attributes:
+      label: ログ / スクリーンショット
+      render: shell

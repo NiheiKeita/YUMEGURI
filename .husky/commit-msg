@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+# GUI Git クライアント（VS Code / Fork / Sourcetree 等）は PATH を削るため
+# 各種 Node バージョンマネージャの bin を明示的に追加する
+export PATH="$HOME/.nodebrew/current/bin:$HOME/.volta/bin:$HOME/.fnm:/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+# nvm が入っていれば読み込む
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+  export NVM_DIR="$HOME/.nvm"
+  . "$NVM_DIR/nvm.sh" --no-use
+fi
+
+npx --no -- commitlint --edit "$1"

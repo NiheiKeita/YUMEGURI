@@ -1,0 +1,42 @@
+# Codecov configuration
+# https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 5%          # 5% 以上下がったら fail
+        informational: false
+      backend:
+        flags:
+          - backend
+        target: 80%            # AGENTS.md §5.1 の目標値
+        threshold: 5%
+      frontend:
+        flags:
+          - frontend
+        target: 70%            # AGENTS.md §5.1 の目標値
+        threshold: 5%
+    patch:
+      default:
+        target: 70%            # 新規コードは最低 70% カバレッジ
+        threshold: 5%
+
+flags:
+  backend:
+    paths:
+      - src/app/
+    carryforward: true
+  frontend:
+    paths:
+      - src/resources/js/
+    carryforward: true
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  show_carryforward_flags: true

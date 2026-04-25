@@ -1,0 +1,218 @@
+version: 2
+updates:
+  # ルート package.json (husky)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    groups:
+      root-npm-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # src/package.json (Laravel フロントエンド)
+  - package-ecosystem: "npm"
+    directory: "/src"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    groups:
+      storybook:
+        patterns:
+          - "@storybook/*"
+          - "storybook"
+          - "@chromatic-com/storybook"
+          - "msw-storybook-addon"
+      eslint:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+          - "typescript-eslint"
+          - "globals"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-slick"
+          - "slick-carousel"
+          - "@headlessui/react"
+      types:
+        patterns:
+          - "@types/*"
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "autoprefixer"
+          - "postcss"
+          - "eslint-plugin-tailwindcss"
+      vite:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "laravel-vite-plugin"
+      inertia:
+        patterns:
+          - "@inertiajs/*"
+          - "ziggy-js"
+      msw:
+        patterns:
+          - "msw"
+      typescript:
+        patterns:
+          - "typescript"
+      other-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # src/composer.json (Laravel バックエンド)
+  - package-ecosystem: "composer"
+    directory: "/src"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "composer"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    groups:
+      laravel:
+        patterns:
+          - "laravel/*"
+          - "laravel-lang/*"
+          - "tightenco/ziggy"
+          - "inertiajs/*"
+      phpstan:
+        patterns:
+          - "larastan/*"
+          - "phpstan/*"
+      phpcs:
+        patterns:
+          - "squizlabs/php_codesniffer"
+          - "slevomat/coding-standard"
+          - "sirbrillig/phpcs-variable-analysis"
+          - "dealerdirect/phpcodesniffer-composer-installer"
+      testing:
+        patterns:
+          - "phpunit/*"
+          - "mockery/*"
+          - "fakerphp/*"
+      spatie:
+        patterns:
+          - "spatie/*"
+      swagger:
+        patterns:
+          - "zircote/*"
+      other-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker (app)
+  - package-ecosystem: "docker"
+    directory: "/docker/app"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  # Docker (db)
+  - package-ecosystem: "docker"
+    directory: "/docker/db"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  # Docker (nginx)
+  - package-ecosystem: "docker"
+    directory: "/docker/nginx"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  # Docker (swagger)
+  - package-ecosystem: "docker"
+    directory: "/docker/swagger"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
