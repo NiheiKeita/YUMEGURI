@@ -11,7 +11,7 @@
         "laravel-lang/lang": "^15.2",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^2.8",
+        "laravel/tinker": "^3.0",
         "tightenco/ziggy": "^2.0",
         "zircote/swagger-php": "^4.8"
     },
