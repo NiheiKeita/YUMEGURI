@@ -10,12 +10,12 @@ use App\Models\User;
 class SentoPolicy
 {
     // 銭湯情報の直接編集は admin のみ
-    public function update(User $user, Sento $sento): bool
+    public function update(User $user, Sento $_sento): bool
     {
         return $user->isAdmin();
     }
 
-    public function propose(User $user, Sento $sento): bool
+    public function propose(User $_user, Sento $_sento): bool
     {
         return true;
     }

@@ -19,7 +19,8 @@ final class NearbySentoService
      */
     public function findUnvisited(User $viewer, float $lat, float $lng, int $limit = 20): Collection
     {
-        $haversine = '6371 * acos(cos(radians(?)) * cos(radians(lat)) * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat)))';
+        $haversine = '6371 * acos(cos(radians(?)) * cos(radians(lat))'
+            . ' * cos(radians(lng) - radians(?)) + sin(radians(?)) * sin(radians(lat)))';
         return Sento::query()
             ->operating()
             ->whereNotNull('lat')

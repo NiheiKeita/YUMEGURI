@@ -5,6 +5,39 @@ const meta: Meta<typeof Top> = {
     title: 'pages/Web/Top',
     component: Top,
     tags: ['autodocs'],
+    parameters: {
+        docs: {
+            description: {
+                component: `
+**画面名**: トップ（雑誌風・最新訪問カード）
+**URL**: \`/\`
+**アクセス**: guest 可（招待制中は要 auth）
+**Controller**: \`Web\\TopController::index\`
+
+## 主な機能
+
+- ヒーローエリアでサイト名・コンセプトを提示
+- 最新訪問記録を 12 件まで雑誌風にカード一覧
+- カードタップで該当銭湯詳細へ遷移
+
+## 画面要素
+
+- **Hero**: サイト名「YUMEGURI」/ 対象エリアラベル / コンセプトコピー
+- **LATEST セクション**: 訪問記録カード × 最大12件
+  - 写真プレースホルダ / 銭湯名 / ★評価 / 訪問日 / 感想抜粋 (3行)
+- 記録が0件のときは「まだ訪問記録がありません。」メッセージ
+
+## 遷移先
+
+- 銭湯詳細 \`/sentos/{sento_id}\`
+
+## データ
+
+- \`latestReviews: SentoReview[]\` — \`SentoReviewResource\` 経由で sento/user/photos eager-loaded
+        `,
+            },
+        },
+    },
 }
 export default meta
 

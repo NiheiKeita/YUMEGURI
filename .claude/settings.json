@@ -25,7 +25,10 @@
       "Bash(php -d 'pcov.enabled=1' -d 'pcov.directory=app' vendor/bin/phpunit)",
       "Bash(php -d 'pcov.enabled=0' vendor/bin/phpunit)",
       "Bash(vendor/bin/phpstan analyze *)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(vendor/bin/phpcs -i)",
+      "Bash(composer phpcs-fix *)",
+      "Bash(vendor/bin/phpcbf --standard=phpcs.xml .)"
     ]
   }
 }

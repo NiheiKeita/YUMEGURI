@@ -9,7 +9,7 @@ use App\Models\User;
 
 class SentoReviewPolicy
 {
-    public function create(User $user): bool
+    public function create(User $_user): bool
     {
         return true;
     }

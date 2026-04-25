@@ -6,7 +6,6 @@ namespace Tests\Feature\Web;
 
 use App\Domain\Enum\SentoStatus;
 use App\Models\Sento;
-use App\Models\SentoPhoto;
 use App\Models\SentoReview;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,7 +19,7 @@ class MapAndNearbyTest extends TestCase
     {
         $viewer = User::factory()->create();
         $visited = Sento::factory()->create(['lat' => 35.68, 'lng' => 139.77]);
-        $unvisited = Sento::factory()->create(['lat' => 35.69, 'lng' => 139.78]);
+        Sento::factory()->create(['lat' => 35.69, 'lng' => 139.78]); // 未訪問
         Sento::factory()->create(['lat' => null, 'lng' => null]); // 除外
         Sento::factory()->create([
             'lat' => 35.7, 'lng' => 139.8,

@@ -6,7 +6,6 @@ use App\Services\Contracts\Geocoder;
 use App\Services\Geocoding\GoogleGeocoder;
 use App\Services\Sento\Importer\Scrapers\ChibaScraper;
 use App\Services\Sento\Importer\Scrapers\KanagawaScraper;
-use App\Services\Sento\Importer\Scrapers\PrefectureScraper;
 use App\Services\Sento\Importer\Scrapers\SaitamaScraper;
 use App\Services\Sento\Importer\Scrapers\TokyoScraper;
 use GuzzleHttp\Client;
@@ -18,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(Geocoder::class, function ($app) {
+        $this->app->bind(Geocoder::class, function () {
             return new GoogleGeocoder(
                 new Client(),
                 (string) config('services.google.geocoding_key', ''),

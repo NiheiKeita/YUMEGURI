@@ -5,6 +5,45 @@ const meta: Meta<typeof SentoShow> = {
     title: 'pages/Web/Sento/Show',
     component: SentoShow,
     tags: ['autodocs'],
+    parameters: {
+        docs: {
+            description: {
+                component: `
+**画面名**: 銭湯詳細（雑誌風レイアウト）
+**URL**: \`/sentos/{id}\`
+**アクセス**: guest 可（招待制中は要 auth）
+**Controller**: \`Web\\SentoController::show\`
+
+## 主な機能
+
+- 銭湯の基本情報（名称・住所・営業時間・料金 等）を雑誌風に表示
+- 全ユーザーの感想を最新 50 件まで表示
+- 「記録する / 編集」「情報を直す」ボタンで遷移
+
+## 画面要素
+
+- **ヘッダ**: 都道府県・市区 / 銭湯名（明朝太字）/ ふりがな
+- **メインビジュアル**: 写真プレースホルダ（暖色グラデ）
+- **情報テーブル** (2カラム): 住所 / 電話 / 営業時間 / 定休日 / 料金 / アクセス
+- **設備チップ**: 🧴 シャンプー / 🧼 ボディソープ
+- **CTA ボタン**:
+  - 「記録する / 編集」 → \`/sentos/{id}/review\`
+  - 「情報を直す」 → \`/sentos/{id}/propose\`
+- **REVIEWS セクション**: 全ユーザーの感想カード一覧
+  - ユーザー名 / ★評価 / 訪問日 / 感想 / サウナ・水風呂チップ
+
+## 遷移先
+
+- 訪問記録フォーム \`/sentos/{id}/review\`
+- 編集提案フォーム \`/sentos/{id}/propose\`
+
+## データ
+
+- \`sento: SentoDetail\` — reviews 50件 + photos 30件 eager-loaded
+        `,
+            },
+        },
+    },
 }
 export default meta
 
