@@ -2,19 +2,23 @@
 
 namespace App\Models;
 
+use App\Domain\Enum\UserRole;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     use HasApiTokens;
+    use HasFactory;
     use Notifiable;
+    use SoftDeletes;
 
     /**
-     * The attributes that are mass assignable.
-     *
      * @var list<string>
      */
     protected $fillable = [
@@ -23,11 +27,11 @@ class User extends Authenticatable
         'password',
         'tel',
         'password_token',
+        'role',
+        'invited_by',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
      * @var list<string>
      */
     protected $hidden = [
@@ -36,30 +40,40 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be cast.
-     *
      * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'role' => UserRole::class,
     ];
 
-    protected static function boot()
+    public function isAdmin(): bool
     {
-        parent::boot();
+        return $this->role instanceof UserRole && $this->role->isAdmin();
+    }
 
-        static::updated(function ($user) {
-            // プランが変更されたかどうかを確認する
-            if ($user->isDirty('plan_id')) {
-                // プランが変更された場合、ログを保存する
-                DB::table('user_plan_logs')->insert([
-                    'user_id' => $user->id,
-                    'plan_id' => $user->plan_id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        });
+    /** @return BelongsTo<User, User> */
+    public function inviter(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'invited_by');
+    }
+
+    /** @return HasMany<SentoReview> */
+    public function sentoReviews(): HasMany
+    {
+        return $this->hasMany(SentoReview::class);
+    }
+
+    /** @return HasMany<SentoPhoto> */
+    public function sentoPhotos(): HasMany
+    {
+        return $this->hasMany(SentoPhoto::class);
+    }
+
+    /** @return HasMany<SentoEditProposal> */
+    public function sentoEditProposals(): HasMany
+    {
+        return $this->hasMany(SentoEditProposal::class, 'proposed_by');
     }
 }
