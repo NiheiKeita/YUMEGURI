@@ -9,6 +9,7 @@ use App\Http\Resources\SentoEditProposalResource;
 use App\Models\SentoEditProposal;
 use App\Services\Proposal\ProposalReviewService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -32,17 +33,15 @@ class ProposalController extends Controller
         ]);
     }
 
-    public function approve(SentoEditProposal $proposal): RedirectResponse
+    public function approve(Request $request, SentoEditProposal $proposal): RedirectResponse
     {
-        $this->authorize('review', $proposal);
-        $this->reviewService->approve(request()->user(), $proposal);
+        $this->reviewService->approve($request->user(), $proposal);
         return back()->with('status', '提案を反映しました');
     }
 
-    public function reject(SentoEditProposal $proposal): RedirectResponse
+    public function reject(Request $request, SentoEditProposal $proposal): RedirectResponse
     {
-        $this->authorize('review', $proposal);
-        $this->reviewService->reject(request()->user(), $proposal);
+        $this->reviewService->reject($request->user(), $proposal);
         return back()->with('status', '提案を却下しました');
     }
 }

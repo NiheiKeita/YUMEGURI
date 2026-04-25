@@ -8,6 +8,8 @@ use App\Models\Sento;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 
 final class SentoListService
 {
@@ -55,10 +57,14 @@ final class SentoListService
             $query->whereHas('reviews', fn (Builder $q) => $q->where('has_mizuburo', true));
         }
         if (!empty($filters['bath_types'])) {
+            // OR セマンティクス: チェックされたお湯のいずれか1つでも含むレビューがあれば該当
+            // （ユーザがチェックした項目が増えるほど結果が広がる、典型的なフィルタ UX）
             $query->whereHas('reviews', function (Builder $q) use ($filters) {
-                foreach ($filters['bath_types'] as $type) {
-                    $q->whereJsonContains('bath_types', $type);
-                }
+                $q->where(function (Builder $inner) use ($filters) {
+                    foreach ($filters['bath_types'] as $type) {
+                        $inner->orWhereJsonContains('bath_types', $type);
+                    }
+                });
             });
         }
 
@@ -73,9 +79,7 @@ final class SentoListService
         }
 
         return match ($filters['sort'] ?? 'rating') {
-            'visited_at' => $query->orderByDesc(
-                $this->latestVisitForViewerSubquery($viewer)
-            )->paginate($perPage),
+            'visited_at' => $this->orderByVisitedAt($query, $viewer)->paginate($perPage),
             'want_revisit' => $query->withCount(['reviews as want_revisit_count' => function ($q) {
                 $q->where('want_revisit', true);
             }])->orderByDesc('want_revisit_count')->paginate($perPage),
@@ -85,14 +89,24 @@ final class SentoListService
         };
     }
 
-    private function latestVisitForViewerSubquery(?User $viewer): \Illuminate\Database\Query\Builder
+    /**
+     * @param Builder<Sento> $query
+     * @return Builder<Sento>
+     */
+    private function orderByVisitedAt(Builder $query, ?User $viewer): Builder
     {
-        $sub = \DB::table('sento_reviews')
-            ->select(\DB::raw('MAX(visited_at)'))
-            ->whereColumn('sento_reviews.sento_id', 'sentos.id');
-        if ($viewer) {
-            $sub->where('user_id', $viewer->id);
+        // 未ログイン時は「自分の訪問日」が定義できないので created_at で代替
+        if ($viewer === null) {
+            return $query->orderByDesc('created_at');
         }
-        return $sub;
+        return $query->orderByDesc($this->latestVisitForViewerSubquery($viewer));
+    }
+
+    private function latestVisitForViewerSubquery(User $viewer): QueryBuilder
+    {
+        return DB::table('sento_reviews')
+            ->select(DB::raw('MAX(visited_at)'))
+            ->whereColumn('sento_reviews.sento_id', 'sentos.id')
+            ->where('user_id', $viewer->id);
     }
 }

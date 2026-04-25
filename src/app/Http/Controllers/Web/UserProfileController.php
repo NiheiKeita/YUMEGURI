@@ -23,16 +23,24 @@ class UserProfileController extends Controller
 
     public function show(User $user): Response
     {
+        // 統計（訪問数・都道府県数・区市町村数）はレビュー全件をロードせず集計クエリで取る
+        $stats = [
+            'visited_count' => $user->sentoReviews()->count(),
+            'prefecture_count' => $user->sentoReviews()
+                ->join('sentos', 'sentos.id', '=', 'sento_reviews.sento_id')
+                ->distinct()->count('sentos.prefecture'),
+            'city_count' => $user->sentoReviews()
+                ->join('sentos', 'sentos.id', '=', 'sento_reviews.sento_id')
+                ->whereNotNull('sentos.city')
+                ->distinct()->count('sentos.city'),
+        ];
+
+        // 表示は最新 60 件まで（一覧画面に近い量。ページネーションは後続 PR で）
         $reviews = $user->sentoReviews()
             ->with(['sento', 'photos'])
             ->latest('visited_at')
+            ->limit(60)
             ->get();
-
-        $stats = [
-            'visited_count' => $reviews->count(),
-            'prefecture_count' => $reviews->pluck('sento.prefecture')->unique()->count(),
-            'city_count' => $reviews->pluck('sento.city')->filter()->unique()->count(),
-        ];
 
         return Inertia::render('Web/User/Show', [
             'profile' => [
@@ -62,12 +70,13 @@ class UserProfileController extends Controller
 
     public function nearby(Request $request, User $user): Response
     {
-        // 仕様: 自分のページのみ表示、友達のページでは非表示
-        abort_if($request->user()?->id !== $user->id, 404);
+        // 仕様: 自分のページのみ表示、友達のページでは非表示。
+        // ルートが auth middleware 配下なので $request->user() は必ず存在する前提。
+        abort_unless($request->user()->id === $user->id, 404);
 
         $request->validate([
-            'lat' => ['nullable', 'numeric'],
-            'lng' => ['nullable', 'numeric'],
+            'lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'lng' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
         $lat = (float) $request->input('lat', 35.6812);
         $lng = (float) $request->input('lng', 139.7671);
@@ -82,7 +91,7 @@ class UserProfileController extends Controller
 
     public function photos(User $user): Response
     {
-        $photos = $user->sentoPhotos()->with('sento')->latest()->get();
+        $photos = $user->sentoPhotos()->with('sento')->latest()->limit(120)->get();
         return Inertia::render('Web/User/Photos', [
             'profile' => ['id' => $user->id, 'name' => $user->name],
             'photos' => SentoPhotoResource::collection($photos)->resolve(),

@@ -37,15 +37,21 @@ class SentoController extends Controller
 
     public function show(Sento $sento): Response
     {
-        $sento->load(['reviews.user', 'reviews.photos', 'photos']);
+        // 詳細ページに表示する最新レビューは上限を設ける（人気銭湯で payload が爆発するのを防ぐ）
+        $sento->load([
+            'reviews' => fn ($q) => $q->latest('visited_at')->limit(50),
+            'reviews.user',
+            'reviews.photos',
+            'photos' => fn ($q) => $q->latest()->limit(30),
+        ]);
         return Inertia::render('Web/Sento/Show', [
             'sento' => (new SentoResource($sento))->resolve(),
         ]);
     }
 
+    // edit / update は admin middleware で gate 済みなので Policy 認可は不要
     public function edit(Sento $sento): Response
     {
-        $this->authorize('update', $sento);
         return Inertia::render('Web/Sento/Edit', [
             'sento' => (new SentoResource($sento))->resolve(),
         ]);
@@ -53,7 +59,6 @@ class SentoController extends Controller
 
     public function update(SentoUpdateRequest $request, Sento $sento): RedirectResponse
     {
-        $this->authorize('update', $sento);
         $sento->fill($request->validated());
         $sento->is_manually_updated = true;
         $sento->info_updated_at = now()->toDateString();

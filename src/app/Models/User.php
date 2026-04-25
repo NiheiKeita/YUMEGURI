@@ -19,6 +19,9 @@ class User extends Authenticatable
     use SoftDeletes;
 
     /**
+     * role は意図的に fillable から外している（mass assignment による権限昇格を防ぐ）。
+     * 変更したい場合は promoteToAdmin() / demoteToMember() を経由する。
+     *
      * @var list<string>
      */
     protected $fillable = [
@@ -27,7 +30,6 @@ class User extends Authenticatable
         'password',
         'tel',
         'password_token',
-        'role',
         'invited_by',
     ];
 
@@ -51,6 +53,18 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role instanceof UserRole && $this->role->isAdmin();
+    }
+
+    public function promoteToAdmin(): void
+    {
+        $this->role = UserRole::Admin;
+        $this->save();
+    }
+
+    public function demoteToMember(): void
+    {
+        $this->role = UserRole::Member;
+        $this->save();
     }
 
     /** @return BelongsTo<User, User> */

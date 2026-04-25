@@ -14,13 +14,20 @@ class MapController extends Controller
 {
     public function index(Request $request): Response
     {
+        // TODO: 都県数が増えたらピン数が 1000+ になり Inertia payload が肥大する。
+        //       bbox / prefecture フィルタを受けるか、別 API エンドポイントから fetch する設計に分離する。
         $viewer = $request->user();
-        $sentos = Sento::query()
+        $query = Sento::query()
             ->operating()
             ->whereNotNull('lat')
             ->whereNotNull('lng')
-            ->select(['id', 'name', 'prefecture', 'address', 'lat', 'lng'])
-            ->get();
+            ->select(['id', 'name', 'prefecture', 'address', 'lat', 'lng']);
+
+        if ($prefecture = $request->string('prefecture')->toString()) {
+            $query->inPrefecture($prefecture);
+        }
+
+        $sentos = $query->limit(2000)->get();
 
         $visitedIds = $viewer
             ? $viewer->sentoReviews()->pluck('sento_id')->unique()->values()

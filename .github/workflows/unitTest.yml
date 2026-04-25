@@ -9,6 +9,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# PR コメント投稿に必要な権限（デフォルトは contents: read のみで PR 書き込み不可）
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   backend:
     name: PHP (PHPStan / PHPCS / PHPUnit)
@@ -18,7 +23,7 @@ jobs:
       run:
         working-directory: ./src
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -33,7 +38,7 @@ jobs:
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
       - name: Cache composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('src/composer.lock') }}
@@ -57,27 +62,30 @@ jobs:
         run: composer phpcs .
 
       - name: PHPUnit (with coverage)
-        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+        # Clover: Codecov 用 / Cobertura: irongut/CodeCoverageSummary 用
+        run: vendor/bin/phpunit --coverage-clover=coverage-clover.xml
+          --coverage-cobertura=coverage-cobertura.xml
 
       - name: Upload PHP coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
-          files: src/coverage.xml
+          files: src/coverage-clover.xml
           flags: backend
           name: php-coverage
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
 
       # PR コメントで PHP カバレッジを可視化（Codecov とは別経路）
+      # 注意: irongut/CodeCoverageSummary は Cobertura 形式専用（Clover は読めない）
       - name: Generate PHP coverage markdown
         if: github.event_name == 'pull_request'
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
-          filename: src/coverage.xml
+          filename: src/coverage-cobertura.xml
           badge: true
           format: markdown
           output: both
-          thresholds: '60 80'    # 60%未満=赤 / 80%以上=緑（AGENTS.md §5.1）
+          thresholds: "60 80" # 60%未満=赤 / 80%以上=緑（AGENTS.md §5.1）
 
       - name: Post PHP coverage PR comment
         if: github.event_name == 'pull_request'
@@ -95,10 +103,10 @@ jobs:
       run:
         working-directory: ./src
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "lts/*"
           cache: "npm"
@@ -121,10 +129,10 @@ jobs:
       run:
         working-directory: ./src
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "lts/*"
           cache: "npm"
@@ -140,7 +148,7 @@ jobs:
           "$GITHUB_OUTPUT"
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
@@ -172,7 +180,7 @@ jobs:
           name: Frontend (Vitest)
 
       - name: Upload frontend coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           files: src/coverage/clover.xml
           flags: frontend
