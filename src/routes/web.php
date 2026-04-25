@@ -41,14 +41,10 @@ Route::group(['middleware' => 'basicauth'], function () {
     Route::get('login', [LoginController::class, 'create'])->name('user.login');
     Route::post('login', [LoginController::class, 'store']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | YUMEGURI Web 画面
-    |--------------------------------------------------------------------------
-    |
-    | 招待制フェーズではほとんどの画面で auth が必要。一般公開フェーズ移行時に
-    | 閲覧系（top/map/sentos.*/users.show 等）から auth を外す想定。
-    */
+    // YUMEGURI Web 画面
+    //
+    // 招待制フェーズではほとんどの画面で auth が必要。一般公開フェーズ移行時に
+    // 閲覧系（top, map, sentos.*, users.show 等）から auth を外す想定。
 
     Route::get('/', [TopController::class, 'index'])->name('web.top');
     Route::get('/map', [MapController::class, 'index'])->name('web.map');
@@ -96,11 +92,7 @@ Route::group(['middleware' => 'basicauth'], function () {
             ->name('proposals.reject');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | 既存テンプレート: /admin の AdminUser ベース管理（YUMEGURI とは別系統）
-    |--------------------------------------------------------------------------
-    */
+    // 既存テンプレート: /admin の AdminUser ベース管理（YUMEGURI とは別系統）
     Route::get('admin/login', [AdminLoginController::class, 'index'])->name('admin.login');
     Route::post('admin/login', [AdminLoginController::class, 'store'])->name('admin.login');
     Route::middleware('guest.admin')->group(function () {
