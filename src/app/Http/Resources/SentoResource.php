@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Models\Sento;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin Sento
+ */
 class SentoResource extends JsonResource
 {
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         return [
@@ -29,7 +34,7 @@ class SentoResource extends JsonResource
             'walk_minutes' => $this->walk_minutes,
             'has_shampoo' => $this->has_shampoo,
             'has_soap' => $this->has_soap,
-            'status' => $this->status?->value,
+            'status' => $this->status->value,
             'avg_rating' => $this->reviews_avg_rating ?? null,
             'review_count' => $this->reviews_count ?? null,
             'distance_km' => isset($this->distance_km) ? (float) $this->distance_km : null,

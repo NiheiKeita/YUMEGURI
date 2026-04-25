@@ -38,14 +38,19 @@ class AppServiceProvider extends ServiceProvider
     {
         Inertia::share([
             'auth.user' => function () {
+                // Auth::user() は AdminUser|User の union を返すため、YUMEGURI 用の
+                // role/isAdmin は User instance の場合だけ参照する。
                 $user = Auth::user();
-                return $user ? [
+                if (!$user instanceof \App\Models\User) {
+                    return null;
+                }
+                return [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'role' => $user->role?->value,
                     'is_admin' => $user->isAdmin(),
-                ] : null;
+                ];
             },
         ]);
     }

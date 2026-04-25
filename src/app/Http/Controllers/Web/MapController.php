@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Sento;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,7 +17,8 @@ class MapController extends Controller
     {
         // TODO: 都県数が増えたらピン数が 1000+ になり Inertia payload が肥大する。
         //       bbox / prefecture フィルタを受けるか、別 API エンドポイントから fetch する設計に分離する。
-        $viewer = $request->user();
+        // YUMEGURI ドメインに属さない AdminUser ログイン状態では viewer を null 扱いにする
+        $viewer = $request->user() instanceof User ? $request->user() : null;
         $query = Sento::query()
             ->operating()
             ->whereNotNull('lat')

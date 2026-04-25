@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SentoEditProposalResource;
 use App\Models\SentoEditProposal;
+use App\Models\User;
 use App\Services\Proposal\ProposalReviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,13 +36,17 @@ class ProposalController extends Controller
 
     public function approve(Request $request, SentoEditProposal $proposal): RedirectResponse
     {
-        $this->reviewService->approve($request->user(), $proposal);
+        /** @var User $admin (admin middleware で gate 済み) */
+        $admin = $request->user();
+        $this->reviewService->approve($admin, $proposal);
         return back()->with('status', '提案を反映しました');
     }
 
     public function reject(Request $request, SentoEditProposal $proposal): RedirectResponse
     {
-        $this->reviewService->reject($request->user(), $proposal);
+        /** @var User $admin */
+        $admin = $request->user();
+        $this->reviewService->reject($admin, $proposal);
         return back()->with('status', '提案を却下しました');
     }
 }

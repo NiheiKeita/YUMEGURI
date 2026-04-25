@@ -29,6 +29,7 @@ final class SentoListService
      *     status?: string|null,
      *     sort?: string|null
      * } $filters
+     * @return LengthAwarePaginator<int, Sento>
      */
     public function paginate(array $filters, ?User $viewer = null, int $perPage = 20): LengthAwarePaginator
     {

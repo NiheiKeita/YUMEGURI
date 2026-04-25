@@ -14,6 +14,8 @@ final class NearbySentoService
     /**
      * 緯度経度から距離(km)順に未訪問銭湯を取得する。
      * Haversine 近似式を SQL で評価する（小規模なので空間関数は不要）。
+     *
+     * @return Collection<int, Sento>
      */
     public function findUnvisited(User $viewer, float $lat, float $lng, int $limit = 20): Collection
     {

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SentoUpdateRequest;
 use App\Http\Resources\SentoResource;
 use App\Models\Sento;
+use App\Models\User;
 use App\Services\Sento\SentoListService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,7 +28,9 @@ class SentoController extends Controller
             'prefecture', 'city', 'visited', 'has_sauna', 'has_mizuburo',
             'has_shampoo', 'has_soap', 'bath_types', 'status', 'sort',
         ]);
-        $page = $this->listService->paginate($filters, $request->user());
+        // SentoListService は User のみ理解する（AdminUser は viewer 扱いしない）
+        $viewer = $request->user() instanceof User ? $request->user() : null;
+        $page = $this->listService->paginate($filters, $viewer);
 
         return Inertia::render('Web/Sento/Index', [
             'sentos' => SentoResource::collection($page)->response()->getData(true),
@@ -61,7 +64,7 @@ class SentoController extends Controller
     {
         $sento->fill($request->validated());
         $sento->is_manually_updated = true;
-        $sento->info_updated_at = now()->toDateString();
+        $sento->info_updated_at = now();
         $sento->save();
         return redirect()->route('web.sentos.show', $sento)->with('status', '更新しました');
     }

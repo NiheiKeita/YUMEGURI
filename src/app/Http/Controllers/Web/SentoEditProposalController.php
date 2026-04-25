@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SentoEditProposalStoreRequest;
 use App\Http\Resources\SentoResource;
 use App\Models\Sento;
+use App\Models\User;
 use App\Services\Proposal\ProposalSubmitService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -35,8 +36,10 @@ class SentoEditProposalController extends Controller
             $validated['changes'],
             fn ($v) => $v !== null && $v !== ''
         );
+        /** @var User $user */
+        $user = $request->user();
         $this->submitService->execute(
-            $request->user(),
+            $user,
             $sento->id,
             $changes,
             $validated['reason'] ?? null,

@@ -21,15 +21,17 @@ final class ProposalReviewService
             $sento = $proposal->sento()->lockForUpdate()->firstOrFail();
             $sento->fill($proposal->changes);
             $sento->is_manually_updated = true;
-            $sento->info_updated_at = now()->toDateString();
+            $sento->info_updated_at = now();
             $sento->save();
 
             $proposal->status = ProposalStatus::Approved;
-            $proposal->reviewed_by = $admin->id;
+            $proposal->reviewed_by = (int) $admin->id;
             $proposal->reviewed_at = now();
             $proposal->save();
 
-            return $proposal->fresh();
+            /** @var SentoEditProposal $fresh */
+            $fresh = $proposal->fresh();
+            return $fresh;
         });
     }
 
@@ -39,9 +41,11 @@ final class ProposalReviewService
             throw new RuntimeException('既に処理済みの提案は変更できません');
         }
         $proposal->status = ProposalStatus::Rejected;
-        $proposal->reviewed_by = $admin->id;
+        $proposal->reviewed_by = (int) $admin->id;
         $proposal->reviewed_at = now();
         $proposal->save();
-        return $proposal->fresh();
+        /** @var SentoEditProposal $fresh */
+        $fresh = $proposal->fresh();
+        return $fresh;
     }
 }

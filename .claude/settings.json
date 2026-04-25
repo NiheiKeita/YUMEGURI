@@ -23,7 +23,9 @@
       "Read(//tmp/**)",
       "Read(//private/tmp/**)",
       "Bash(php -d 'pcov.enabled=1' -d 'pcov.directory=app' vendor/bin/phpunit)",
-      "Bash(php -d 'pcov.enabled=0' vendor/bin/phpunit)"
+      "Bash(php -d 'pcov.enabled=0' vendor/bin/phpunit)",
+      "Bash(vendor/bin/phpstan analyze *)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

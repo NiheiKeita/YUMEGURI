@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Enum\UserRole;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,9 +12,28 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property Carbon|null $email_verified_at
+ * @property string $password
+ * @property string|null $tel
+ * @property string|null $password_token
+ * @property UserRole|null $role
+ * @property int|null $invited_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read User|null $inviter
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, SentoReview> $sentoReviews
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, SentoPhoto> $sentoPhotos
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, SentoEditProposal> $sentoEditProposals
+ */
 class User extends Authenticatable
 {
     use HasApiTokens;
+    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
     use Notifiable;
     use SoftDeletes;
@@ -67,25 +87,25 @@ class User extends Authenticatable
         $this->save();
     }
 
-    /** @return BelongsTo<User, User> */
+    /** @return BelongsTo<User, $this> */
     public function inviter(): BelongsTo
     {
         return $this->belongsTo(self::class, 'invited_by');
     }
 
-    /** @return HasMany<SentoReview> */
+    /** @return HasMany<SentoReview, $this> */
     public function sentoReviews(): HasMany
     {
         return $this->hasMany(SentoReview::class);
     }
 
-    /** @return HasMany<SentoPhoto> */
+    /** @return HasMany<SentoPhoto, $this> */
     public function sentoPhotos(): HasMany
     {
         return $this->hasMany(SentoPhoto::class);
     }
 
-    /** @return HasMany<SentoEditProposal> */
+    /** @return HasMany<SentoEditProposal, $this> */
     public function sentoEditProposals(): HasMany
     {
         return $this->hasMany(SentoEditProposal::class, 'proposed_by');

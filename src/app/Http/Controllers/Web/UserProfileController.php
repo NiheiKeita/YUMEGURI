@@ -62,7 +62,7 @@ class UserProfileController extends Controller
                 'name' => $r->sento->name,
                 'lat' => (float) $r->sento->lat,
                 'lng' => (float) $r->sento->lng,
-                'visited_at' => $r->visited_at?->toDateString(),
+                'visited_at' => $r->visited_at->toDateString(),
                 'rating' => $r->rating,
             ])->filter(fn ($p) => $p['lat'] !== 0.0 && $p['lng'] !== 0.0)->values(),
         ]);
@@ -72,7 +72,8 @@ class UserProfileController extends Controller
     {
         // 仕様: 自分のページのみ表示、友達のページでは非表示。
         // ルートが auth middleware 配下なので $request->user() は必ず存在する前提。
-        abort_unless($request->user()->id === $user->id, 404);
+        $viewer = $request->user();
+        abort_unless($viewer instanceof User && $viewer->id === $user->id, 404);
 
         $request->validate([
             'lat' => ['nullable', 'numeric', 'between:-90,90'],

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SentoResource;
+use App\Models\User;
 use App\Services\Sento\NearbySentoService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -26,8 +27,9 @@ class NearbyController extends Controller
         ]);
         $lat = (float) $request->input('lat', 35.6812);
         $lng = (float) $request->input('lng', 139.7671);
-        $sentos = $request->user()
-            ? $this->nearby->findUnvisited($request->user(), $lat, $lng, 20)
+        $user = $request->user();
+        $sentos = $user instanceof User
+            ? $this->nearby->findUnvisited($user, $lat, $lng, 20)
             : collect();
 
         return Inertia::render('Web/Nearby', [

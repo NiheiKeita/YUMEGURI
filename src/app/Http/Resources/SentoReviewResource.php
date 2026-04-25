@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Models\SentoReview;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @mixin SentoReview
+ */
 class SentoReviewResource extends JsonResource
 {
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         return [
@@ -18,7 +23,7 @@ class SentoReviewResource extends JsonResource
                 'id' => $this->user->id,
                 'name' => $this->user->name,
             ]),
-            'visited_at' => $this->visited_at?->toDateString(),
+            'visited_at' => $this->visited_at->toDateString(),
             'rating' => $this->rating,
             'body' => $this->body,
             'has_sauna' => $this->has_sauna,
