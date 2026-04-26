@@ -28,7 +28,10 @@
       "Bash(python3 -c ' *)",
       "Bash(vendor/bin/phpcs -i)",
       "Bash(composer phpcs-fix *)",
-      "Bash(vendor/bin/phpcbf --standard=phpcs.xml .)"
+      "Bash(vendor/bin/phpcbf --standard=phpcs.xml .)",
+      "Bash(npm ls *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('peerDeps:', d.get\\('peerDependencies'\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('engines:', d.get\\('engines'\\)\\)\")"
     ]
   }
 }

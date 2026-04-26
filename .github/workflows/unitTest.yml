@@ -108,7 +108,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "lts/*"
+          # vitest 4 が要求するのは ^20 || ^22 || >=24。
+          # "lts/*" 任せにすると LTS 切替で挙動が変わるので明示固定。
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: src/package-lock.json
 
@@ -134,7 +136,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "lts/*"
+          # vitest 4 が要求するのは ^20 || ^22 || >=24。
+          # "lts/*" 任せにすると LTS 切替で挙動が変わるので明示固定。
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: src/package-lock.json
 
@@ -161,6 +165,12 @@ jobs:
       - name: Install Playwright system deps (cache hit)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
+
+      # 失敗時に node_modules の整合性を確認できるよう事前ログを取る
+      - name: Debug — show vitest deps before run
+        run: |
+          node --version
+          npm ls vitest @vitest/coverage-v8 @vitest/browser @vitest/browser-playwright || true
 
       - name: Run Vitest with coverage (all projects — storybook + 将来の unit)
         env:

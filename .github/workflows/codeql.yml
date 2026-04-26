@@ -36,7 +36,12 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
+      # 注意: Code scanning がリポジトリで未有効化の場合は SARIF upload で失敗する。
+      # その場合は GitHub UI で
+      #   Settings → Code security → Code scanning → "Set up" を有効化してください。
+      # 暫定として、未有効化の状態でも CI 全体を fail させないよう continue-on-error を付ける。
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+        continue-on-error: true
         with:
           category: "/language:${{ matrix.language }}"
