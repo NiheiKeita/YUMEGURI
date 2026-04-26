@@ -29,9 +29,17 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
-          extensions: intl, pdo_sqlite, zip, bcmath, mbstring
+          extensions: intl, pdo_sqlite, zip, bcmath, mbstring, gd
           coverage: pcov
+          # pcov はデフォルトで cwd を起点にトラックするが、autoload 経由のファイルを
+          # 確実に拾うため app ディレクトリを明示し、opcache を切る
+          ini-values: pcov.directory=app, opcache.enable_cli=0
           tools: composer:v2
+
+      - name: Verify pcov is enabled
+        run: |
+          php -m | grep -i pcov || (echo "pcov not loaded!"; exit 1)
+          php -r "echo 'pcov.directory = ' . ini_get('pcov.directory') . PHP_EOL;"
 
       - name: Get composer cache directory
         id: composer-cache
@@ -63,8 +71,16 @@ jobs:
 
       - name: PHPUnit (with coverage)
         # Clover: Codecov 用 / Cobertura: irongut/CodeCoverageSummary 用
+        # --coverage-text で CI ログ上でも全体率を確認できるようにする
         run: vendor/bin/phpunit --coverage-clover=coverage-clover.xml
-          --coverage-cobertura=coverage-cobertura.xml
+          --coverage-cobertura=coverage-cobertura.xml --coverage-text
+
+      - name: Show generated coverage file (debug)
+        run: |
+          echo "--- coverage-cobertura.xml first 30 lines ---"
+          head -30 coverage-cobertura.xml || echo "file missing"
+          echo "--- coverage-cobertura.xml line count ---"
+          wc -l coverage-cobertura.xml || true
 
       - name: Upload PHP coverage to Codecov
         uses: codecov/codecov-action@v6
@@ -91,8 +107,9 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
+          # header で同じコメントを識別し、push 毎に新規作成せず in-place 更新する
+          # （recreate: true にすると削除→再作成で通知が複数回飛んでしまう）
           header: backend-coverage
-          recreate: true
           path: code-coverage-results.md
 
   frontend:
@@ -108,9 +125,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          # vitest 4 が要求するのは ^20 || ^22 || >=24。
-          # "lts/*" 任せにすると LTS 切替で挙動が変わるので明示固定。
-          node-version: "22"
+          node-version: "lts/*"
           cache: "npm"
           cache-dependency-path: src/package-lock.json
 
@@ -136,9 +151,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          # vitest 4 が要求するのは ^20 || ^22 || >=24。
-          # "lts/*" 任せにすると LTS 切替で挙動が変わるので明示固定。
-          node-version: "22"
+          node-version: "lts/*"
           cache: "npm"
           cache-dependency-path: src/package-lock.json
 
@@ -165,12 +178,6 @@ jobs:
       - name: Install Playwright system deps (cache hit)
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
-
-      # 失敗時に node_modules の整合性を確認できるよう事前ログを取る
-      - name: Debug — show vitest deps before run
-        run: |
-          node --version
-          npm ls vitest @vitest/coverage-v8 @vitest/browser @vitest/browser-playwright || true
 
       - name: Run Vitest with coverage (all projects — storybook + 将来の unit)
         env:
