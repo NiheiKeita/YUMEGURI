@@ -2,18 +2,46 @@
 
 namespace App\Models;
 
+use App\Domain\Enum\UserRole;
+use App\Models\Post;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property Carbon|null $email_verified_at
+ * @property string $password
+ * @property string|null $tel
+ * @property string|null $password_token
+ * @property UserRole|null $role
+ * @property int|null $invited_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read User|null $inviter
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, SentoReview> $sentoReviews
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, SentoPhoto> $sentoPhotos
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, SentoEditProposal> $sentoEditProposals
+ */
 class User extends Authenticatable
 {
     use HasApiTokens;
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory;
     use Notifiable;
+    use SoftDeletes;
 
     /**
-     * The attributes that are mass assignable.
+     * role は意図的に fillable から外している（mass assignment による権限昇格を防ぐ）。
+     * 変更したい場合は promoteToAdmin() / demoteToMember() を経由する。
      *
      * @var list<string>
      */
@@ -23,11 +51,10 @@ class User extends Authenticatable
         'password',
         'tel',
         'password_token',
+        'invited_by',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
      * @var list<string>
      */
     protected $hidden = [
@@ -36,30 +63,58 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be cast.
-     *
      * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'role' => UserRole::class,
     ];
 
-    protected static function boot()
+    public function isAdmin(): bool
     {
-        parent::boot();
+        return $this->role instanceof UserRole && $this->role->isAdmin();
+    }
 
-        static::updated(function ($user) {
-            // プランが変更されたかどうかを確認する
-            if ($user->isDirty('plan_id')) {
-                // プランが変更された場合、ログを保存する
-                DB::table('user_plan_logs')->insert([
-                    'user_id' => $user->id,
-                    'plan_id' => $user->plan_id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        });
+    public function promoteToAdmin(): void
+    {
+        $this->role = UserRole::Admin;
+        $this->save();
+    }
+
+    public function demoteToMember(): void
+    {
+        $this->role = UserRole::Member;
+        $this->save();
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function inviter(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'invited_by');
+    }
+
+    /** @return HasMany<SentoReview, $this> */
+    public function sentoReviews(): HasMany
+    {
+        return $this->hasMany(SentoReview::class);
+    }
+
+    /** @return HasMany<SentoPhoto, $this> */
+    public function sentoPhotos(): HasMany
+    {
+        return $this->hasMany(SentoPhoto::class);
+    }
+
+    /** @return HasMany<SentoEditProposal, $this> */
+    public function sentoEditProposals(): HasMany
+    {
+        return $this->hasMany(SentoEditProposal::class, 'proposed_by');
+    }
+
+    /** @return HasMany<Post, $this> */
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
     }
 }

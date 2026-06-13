@@ -1,0 +1,44 @@
+import { Meta } from '@storybook/addon-docs/blocks'
+
+<Meta title="Introduction" />
+
+# YUMEGURI Storybook
+
+東京・神奈川・埼玉・千葉の銭湯記録サイト「YUMEGURI（湯巡り）」の UI カタログ。
+
+## このカタログの構成
+
+- **components/** — 再利用 UI コンポーネント（SentoCard / RatingStars / EquipmentChip / MapView / SectionTitle 等）
+- **pages/Web/** — 利用者向けページ（Top / Map / Sento一覧/詳細/記録フォーム/編集提案/直接編集 / Nearby / User プロフィール）
+- **pages/Admin/** — 管理者向けページ（編集提案レビュー）
+
+各ページには**画面仕様**が `Docs` タブに記載されています。URL・アクセス制御・主要機能・対応 Controller / Service へのリンクを参照できます。
+
+## 関連ドキュメント
+
+リポジトリ直下の `docs/` ディレクトリに設計文書があります:
+
+- `docs/README.md` — 全体インデックス・サイトコンセプト
+- `docs/architecture.md` — レイヤ構成・DDD 方針・DI 設計
+- `docs/domain-model.md` — ER 図・モデル詳細・Domain Enum
+- `docs/permissions.md` — ロールと機能別の認可マトリクス
+- `docs/api.md` — Inertia ルート別の入出力仕様
+- `docs/data-import.md` — `sento:import` スクレイピング設計
+- `docs/operations.md` — テスト・カバレッジ・CI
+
+## デザイン原則
+
+- **雑誌風・和モダン**: 明朝系フォント（Noto Serif JP / Yu Gothic）、暖色系（湯気・タイル）、太い縦罫の見出し
+- **スマホファースト**: 縦スクロールが気持ちいい余白設計、タップ領域は最低 44px
+- **設備タグ**: チップ形式で視覚化（🔥サウナ / 🧊水風呂 / 💧炭酸泉 / 🌿薬湯 / 🥛シルク / ⚡電気風呂）
+- **訪問の足跡**: マップは塗りつぶし（訪問済み）/ アウトライン（未訪問）で色分け
+
+## ロール
+
+| ロール | 説明 | できること |
+|---|---|---|
+| `guest` | 未ログイン | 閲覧のみ（一般公開後） |
+| `member` | 招待された友達 | 訪問記録・写真投稿・編集提案 |
+| `admin` | サイトオーナー | 上記 + 提案承認・直接編集 |
+
+詳細は [`docs/permissions.md`](../../docs/permissions.md)。

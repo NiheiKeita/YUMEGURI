@@ -5,9 +5,19 @@ use App\Http\Controllers\Admin\AdminLoginController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\ImageController;
+use App\Http\Controllers\Admin\ProposalController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Web\LoginController;
+use App\Http\Controllers\Web\MapController;
+use App\Http\Controllers\Web\NearbyController;
 use App\Http\Controllers\Web\PasswordController;
+use App\Http\Controllers\Web\SentoController;
+use App\Http\Controllers\Web\SentoEditProposalController;
+use App\Http\Controllers\Web\SentoReviewController;
+use App\Http\Controllers\Web\TopController;
+use App\Http\Controllers\Web\PostController;
+use App\Http\Controllers\Web\PostImageController;
+use App\Http\Controllers\Web\UserProfileController;
 use App\Http\Middleware\VerifyCsrfToken;
 
 /*
@@ -33,8 +43,78 @@ Route::group(['middleware' => 'basicauth'], function () {
     Route::get('login', [LoginController::class, 'create'])->name('user.login');
     Route::post('login', [LoginController::class, 'store']);
 
+    // YUMEGURI Web 画面
+    //
+    // 招待制フェーズではほとんどの画面で auth が必要。一般公開フェーズ移行時に
+    // 閲覧系（top, map, sentos.*, users.show 等）から auth を外す想定。
 
-    //管理画面側
+    Route::get('/', [TopController::class, 'index'])->name('web.top');
+    Route::get('/map', [MapController::class, 'index'])->name('web.map');
+
+    // ブログ記事（公開一覧）
+    Route::get('/posts', [PostController::class, 'index'])->name('web.posts.index');
+    Route::get('/sentos', [SentoController::class, 'index'])->name('web.sentos.index');
+    Route::get('/sentos/{sento}', [SentoController::class, 'show'])->name('web.sentos.show');
+
+    Route::middleware('auth')->group(function () {
+        // ブログ記事（認証必須）— /posts/create を /posts/{post} より前に登録する必要あり
+        Route::get('/posts/create', [PostController::class, 'create'])->name('web.posts.create');
+        Route::post('/posts', [PostController::class, 'store'])->name('web.posts.store');
+        Route::post('/posts/images/upload', [PostImageController::class, 'upload'])
+            ->name('web.posts.images.upload')
+            ->withoutMiddleware(VerifyCsrfToken::class);
+
+        // 訪問記録
+        Route::get('/sentos/{sento}/review', [SentoReviewController::class, 'create'])
+            ->name('web.sentos.review.create');
+        Route::post('/sentos/{sento}/review', [SentoReviewController::class, 'store'])
+            ->name('web.sentos.review.store');
+
+        // 編集提案
+        Route::get('/sentos/{sento}/propose', [SentoEditProposalController::class, 'create'])
+            ->name('web.sentos.propose.create');
+        Route::post('/sentos/{sento}/propose', [SentoEditProposalController::class, 'store'])
+            ->name('web.sentos.propose.store');
+
+        // 直接編集（admin のみ）
+        Route::middleware('admin')->group(function () {
+            Route::get('/sentos/{sento}/edit', [SentoController::class, 'edit'])
+                ->name('web.sentos.edit');
+            Route::patch('/sentos/{sento}', [SentoController::class, 'update'])
+                ->name('web.sentos.update');
+        });
+
+        Route::get('/nearby', [NearbyController::class, 'index'])->name('web.nearby');
+
+        // ユーザープロフィール
+        Route::get('/users/{user}', [UserProfileController::class, 'show'])->name('web.users.show');
+        Route::get('/users/{user}/edit', [UserProfileController::class, 'edit'])->name('web.users.edit');
+        Route::patch('/users/{user}', [UserProfileController::class, 'update'])->name('web.users.update');
+        Route::get('/users/{user}/map', [UserProfileController::class, 'map'])->name('web.users.map');
+        Route::get('/users/{user}/nearby', [UserProfileController::class, 'nearby'])
+            ->name('web.users.nearby');
+        Route::get('/users/{user}/photos', [UserProfileController::class, 'photos'])
+            ->name('web.users.photos');
+    });
+
+    // ブログ記事（公開詳細・認証必須操作）— /posts/create の後に登録
+    Route::get('/posts/{post}', [PostController::class, 'show'])->name('web.posts.show');
+    Route::middleware('auth')->group(function () {
+        Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('web.posts.edit');
+        Route::patch('/posts/{post}', [PostController::class, 'update'])->name('web.posts.update');
+        Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('web.posts.destroy');
+    });
+
+    // YUMEGURI 管理（admin ロールユーザのみ）
+    Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('proposals', [ProposalController::class, 'index'])->name('proposals.index');
+        Route::post('proposals/{proposal}/approve', [ProposalController::class, 'approve'])
+            ->name('proposals.approve');
+        Route::post('proposals/{proposal}/reject', [ProposalController::class, 'reject'])
+            ->name('proposals.reject');
+    });
+
+    // 既存テンプレート: /admin の AdminUser ベース管理（YUMEGURI とは別系統）
     Route::get('admin/login', [AdminLoginController::class, 'index'])->name('admin.login');
     Route::post('admin/login', [AdminLoginController::class, 'store'])->name('admin.login');
     Route::middleware('guest.admin')->group(function () {
