@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Enum\UserRole;
+use App\Models\Post;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -109,5 +110,11 @@ class User extends Authenticatable
     public function sentoEditProposals(): HasMany
     {
         return $this->hasMany(SentoEditProposal::class, 'proposed_by');
+    }
+
+    /** @return HasMany<Post, $this> */
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
     }
 }

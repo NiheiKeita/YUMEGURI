@@ -95,3 +95,15 @@ export type Paginated<T> = {
         total: number
     }
 }
+
+export type Post = {
+    id: number
+    user: { id: number; name: string }
+    title: string
+    place_name: string | null
+    lat: number | null
+    lng: number | null
+    body: string | null
+    visited_at: string
+    published_at: string | null
+}

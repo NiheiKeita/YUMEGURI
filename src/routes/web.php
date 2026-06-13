@@ -15,6 +15,8 @@ use App\Http\Controllers\Web\SentoController;
 use App\Http\Controllers\Web\SentoEditProposalController;
 use App\Http\Controllers\Web\SentoReviewController;
 use App\Http\Controllers\Web\TopController;
+use App\Http\Controllers\Web\PostController;
+use App\Http\Controllers\Web\PostImageController;
 use App\Http\Controllers\Web\UserProfileController;
 use App\Http\Middleware\VerifyCsrfToken;
 
@@ -48,10 +50,20 @@ Route::group(['middleware' => 'basicauth'], function () {
 
     Route::get('/', [TopController::class, 'index'])->name('web.top');
     Route::get('/map', [MapController::class, 'index'])->name('web.map');
+
+    // ブログ記事（公開一覧）
+    Route::get('/posts', [PostController::class, 'index'])->name('web.posts.index');
     Route::get('/sentos', [SentoController::class, 'index'])->name('web.sentos.index');
     Route::get('/sentos/{sento}', [SentoController::class, 'show'])->name('web.sentos.show');
 
     Route::middleware('auth')->group(function () {
+        // ブログ記事（認証必須）— /posts/create を /posts/{post} より前に登録する必要あり
+        Route::get('/posts/create', [PostController::class, 'create'])->name('web.posts.create');
+        Route::post('/posts', [PostController::class, 'store'])->name('web.posts.store');
+        Route::post('/posts/images/upload', [PostImageController::class, 'upload'])
+            ->name('web.posts.images.upload')
+            ->withoutMiddleware(VerifyCsrfToken::class);
+
         // 訪問記録
         Route::get('/sentos/{sento}/review', [SentoReviewController::class, 'create'])
             ->name('web.sentos.review.create');
@@ -83,6 +95,14 @@ Route::group(['middleware' => 'basicauth'], function () {
             ->name('web.users.nearby');
         Route::get('/users/{user}/photos', [UserProfileController::class, 'photos'])
             ->name('web.users.photos');
+    });
+
+    // ブログ記事（公開詳細・認証必須操作）— /posts/create の後に登録
+    Route::get('/posts/{post}', [PostController::class, 'show'])->name('web.posts.show');
+    Route::middleware('auth')->group(function () {
+        Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('web.posts.edit');
+        Route::patch('/posts/{post}', [PostController::class, 'update'])->name('web.posts.update');
+        Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('web.posts.destroy');
     });
 
     // YUMEGURI 管理（admin ロールユーザのみ）
