@@ -63,6 +63,7 @@ export const Default: Story = {
         <UserShow
             profile={{ id: 1, name: 'けいた' }}
             stats={{ visited_count: 12, prefecture_count: 3, city_count: 7 }}
+            posts={[{ id: 1, user: { id: 1, name: 'けいた' }, title: '浅草散歩', place_name: '浅草', lat: null, lng: null, visited_at: '2026-06-14', published_at: '2026-06-14T10:00:00', body: '楽しかった。' }]}
             reviews={[
                 {
                     id: 1, sento_id: 1, visited_at: '2026-04-20', rating: 5,
@@ -82,6 +83,7 @@ export const OwnProfile: Story = {
             profile={{ id: 1, name: 'けいた' }}
             stats={{ visited_count: 12, prefecture_count: 3, city_count: 7 }}
             canEditProfile
+            posts={[]}
             reviews={[]}
         />
     ),

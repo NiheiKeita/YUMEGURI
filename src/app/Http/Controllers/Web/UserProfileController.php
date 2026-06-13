@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Resources\PostResource;
 use App\Http\Resources\SentoPhotoResource;
 use App\Http\Resources\SentoReviewResource;
 use App\Models\User;
@@ -25,7 +26,6 @@ class UserProfileController extends Controller
 
     public function show(Request $request, User $user): Response
     {
-        // 統計（訪問数・都道府県数・区市町村数）はレビュー全件をロードせず集計クエリで取る
         $stats = [
             'visited_count' => $user->sentoReviews()->count(),
             'prefecture_count' => $user->sentoReviews()
@@ -37,11 +37,16 @@ class UserProfileController extends Controller
                 ->distinct()->count('sentos.city'),
         ];
 
-        // 表示は最新 60 件まで（一覧画面に近い量。ページネーションは後続 PR で）
         $reviews = $user->sentoReviews()
             ->with(['sento', 'photos'])
             ->latest('visited_at')
             ->limit(60)
+            ->get();
+
+        $posts = $user->posts()
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->latest('visited_at')
             ->get();
 
         return Inertia::render('Web/User/Show', [
@@ -50,6 +55,7 @@ class UserProfileController extends Controller
                 'name' => $user->name,
             ],
             'reviews' => SentoReviewResource::collection($reviews)->resolve(),
+            'posts' => $posts->map(fn ($p) => (new PostResource($p))->resolve())->values()->all(),
             'stats' => $stats,
             'canEditProfile' => $request->user()?->id === $user->id,
         ]);
@@ -96,8 +102,6 @@ class UserProfileController extends Controller
 
     public function nearby(Request $request, User $user): Response
     {
-        // 仕様: 自分のページのみ表示、友達のページでは非表示。
-        // ルートが auth middleware 配下なので $request->user() は必ず存在する前提。
         $viewer = $request->user();
         abort_unless($viewer instanceof User && $viewer->id === $user->id, 404);
 

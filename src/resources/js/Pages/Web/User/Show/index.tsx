@@ -3,16 +3,17 @@ import { Link } from '@inertiajs/react'
 import WebLayout from '@/Layouts/WebLayout'
 import SectionTitle from '@/Components/SectionTitle'
 import RatingStars from '@/Components/RatingStars'
-import type { SentoReview } from '@/types/yumeguri'
+import type { Post, SentoReview } from '@/types/yumeguri'
 
 type Props = {
     profile: { id: number; name: string }
     reviews: SentoReview[]
+    posts: Post[]
     stats: { visited_count: number; prefecture_count: number; city_count: number }
     canEditProfile?: boolean
 }
 
-export const UserShow = React.memo(function UserShow({ profile, reviews, stats, canEditProfile = false }: Props) {
+export const UserShow = React.memo(function UserShow({ profile, reviews, posts, stats, canEditProfile = false }: Props) {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false)
 
     return (
@@ -80,6 +81,32 @@ export const UserShow = React.memo(function UserShow({ profile, reviews, stats, 
                         <li className="text-sm text-gray-500">まだ訪問記録がありません。</li>
                     )}
                 </ul>
+
+                {/* ブログ記事 */}
+                <SectionTitle sub="POSTS" className="mt-8">ブログ記事</SectionTitle>
+                <div className="mt-4 space-y-3">
+                    {posts.map((post) => (
+                        <Link
+                            key={post.id}
+                            href={`/posts/${post.id}`}
+                            className="block rounded-xl border border-amber-100 bg-white p-4 shadow-sm hover:bg-amber-50"
+                        >
+                            <h3 className="font-semibold text-gray-900">{post.title}</h3>
+                            <div className="mt-1 flex flex-wrap gap-2 text-xs text-gray-500">
+                                <span>📅 {post.visited_at}</span>
+                                {post.place_name && <span>📍 {post.place_name}</span>}
+                            </div>
+                            {post.body && (
+                                <p className="mt-1 line-clamp-2 text-sm text-gray-600">
+                                    {post.body.replace(/!\[.*?\]\(.*?\)/g, '').replace(/[#*`>_[\]]/g, '').trim()}
+                                </p>
+                            )}
+                        </Link>
+                    ))}
+                    {posts.length === 0 && (
+                        <p className="text-sm text-gray-500">まだ記事がありません。</p>
+                    )}
+                </div>
             </div>
         </WebLayout>
     )
