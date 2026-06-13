@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Web;
 
 use App\Domain\Enum\ProposalStatus;
+use App\Models\Post;
 use App\Models\Sento;
 use App\Models\SentoEditProposal;
 use App\Models\SentoReview;
@@ -16,16 +17,15 @@ class SentoFlowTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_top_page_renders_with_latest_reviews(): void
+    public function test_top_page_renders_with_latest_posts(): void
     {
-        $sento = Sento::factory()->create();
-        SentoReview::factory()->create(['sento_id' => $sento->id]);
+        Post::factory()->create(['published_at' => now()->subDay()]);
 
         $this->get('/')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->component('Web/Top')
-                ->has('latestReviews', 1));
+                ->has('latestPosts', 1));
     }
 
     public function test_sentos_index_returns_list(): void

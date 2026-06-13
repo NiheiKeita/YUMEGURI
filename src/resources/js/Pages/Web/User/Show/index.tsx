@@ -32,10 +32,17 @@ export const UserShow = React.memo(function UserShow({ profile, reviews, posts, 
                                 ≡
                             </button>
                             {isMenuOpen && (
-                                <div className="absolute right-0 top-12 w-44 rounded-lg border border-amber-100 bg-white p-2 shadow-lg">
+                                <div className="absolute right-0 top-12 w-48 rounded-lg border border-amber-100 bg-white p-2 shadow-lg">
+                                    <Link
+                                        href="/posts/create"
+                                        className="block rounded px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-amber-50"
+                                    >
+                                        ✏️ 記事を書く
+                                    </Link>
+                                    <hr className="my-1 border-amber-100" />
                                     <Link
                                         href={route('web.users.edit', profile.id)}
-                                        className="block rounded px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-amber-50"
+                                        className="block rounded px-3 py-2 text-sm text-gray-600 hover:bg-amber-50"
                                     >
                                         プロフィール編集
                                     </Link>
