@@ -75,3 +75,14 @@ export const Default: Story = {
         />
     ),
 }
+
+export const OwnProfile: Story = {
+    render: () => (
+        <UserShow
+            profile={{ id: 1, name: 'けいた' }}
+            stats={{ visited_count: 12, prefecture_count: 3, city_count: 7 }}
+            canEditProfile
+            reviews={[]}
+        />
+    ),
+}

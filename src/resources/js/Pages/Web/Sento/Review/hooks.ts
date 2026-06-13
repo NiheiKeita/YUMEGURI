@@ -35,7 +35,9 @@ const fromReview = (r: SentoReview | null): Form => ({
 export const useReviewForm = (sentoId: number, initial: SentoReview | null) => {
     const { data, setData, post, processing, errors } = useForm<Form>(fromReview(initial))
 
-    const set = <K extends keyof Form>(key: K, value: Form[K]) => setData(key, value)
+    const set = <K extends keyof Form>(key: K, value: Form[K]) => {
+        setData(current => ({ ...current, [key]: value }))
+    }
 
     const submit = (e: FormEvent) => {
         e.preventDefault()

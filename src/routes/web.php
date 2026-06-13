@@ -76,6 +76,8 @@ Route::group(['middleware' => 'basicauth'], function () {
 
         // ユーザープロフィール
         Route::get('/users/{user}', [UserProfileController::class, 'show'])->name('web.users.show');
+        Route::get('/users/{user}/edit', [UserProfileController::class, 'edit'])->name('web.users.edit');
+        Route::patch('/users/{user}', [UserProfileController::class, 'update'])->name('web.users.update');
         Route::get('/users/{user}/map', [UserProfileController::class, 'map'])->name('web.users.map');
         Route::get('/users/{user}/nearby', [UserProfileController::class, 'nearby'])
             ->name('web.users.nearby');

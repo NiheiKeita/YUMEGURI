@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProfileUpdateRequest;
 use App\Http\Resources\SentoPhotoResource;
 use App\Http\Resources\SentoReviewResource;
 use App\Models\User;
 use App\Services\Sento\NearbySentoService;
 use App\Http\Resources\SentoResource;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,7 +23,7 @@ class UserProfileController extends Controller
     ) {
     }
 
-    public function show(User $user): Response
+    public function show(Request $request, User $user): Response
     {
         // 統計（訪問数・都道府県数・区市町村数）はレビュー全件をロードせず集計クエリで取る
         $stats = [
@@ -49,7 +51,31 @@ class UserProfileController extends Controller
             ],
             'reviews' => SentoReviewResource::collection($reviews)->resolve(),
             'stats' => $stats,
+            'canEditProfile' => $request->user()?->id === $user->id,
         ]);
+    }
+
+    public function edit(Request $request, User $user): Response
+    {
+        abort_unless($request->user()?->id === $user->id, 403);
+
+        return Inertia::render('Web/User/Edit', [
+            'profile' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'tel' => $user->tel,
+            ],
+        ]);
+    }
+
+    public function update(ProfileUpdateRequest $request, User $user): RedirectResponse
+    {
+        $user->update($request->validated());
+
+        return redirect()
+            ->route('web.users.show', $user)
+            ->with('message', 'プロフィールを更新しました');
     }
 
     public function map(User $user): Response

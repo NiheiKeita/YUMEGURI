@@ -9,13 +9,39 @@ type Props = {
     profile: { id: number; name: string }
     reviews: SentoReview[]
     stats: { visited_count: number; prefecture_count: number; city_count: number }
+    canEditProfile?: boolean
 }
 
-export const UserShow = React.memo(function UserShow({ profile, reviews, stats }: Props) {
+export const UserShow = React.memo(function UserShow({ profile, reviews, stats, canEditProfile = false }: Props) {
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false)
+
     return (
         <WebLayout>
             <div className="px-4 py-6">
-                <header className="rounded-lg bg-gradient-to-br from-amber-50 to-orange-100 p-6">
+                <header className="relative rounded-lg bg-gradient-to-br from-amber-50 to-orange-100 p-6">
+                    {canEditProfile && (
+                        <div className="absolute right-4 top-4">
+                            <button
+                                type="button"
+                                aria-label="プロフィールメニュー"
+                                aria-expanded={isMenuOpen}
+                                onClick={() => setIsMenuOpen((current) => !current)}
+                                className="flex h-10 w-10 items-center justify-center rounded-full border border-amber-200 bg-white text-xl font-bold text-amber-900 shadow-sm"
+                            >
+                                ≡
+                            </button>
+                            {isMenuOpen && (
+                                <div className="absolute right-0 top-12 w-44 rounded-lg border border-amber-100 bg-white p-2 shadow-lg">
+                                    <Link
+                                        href={route('web.users.edit', profile.id)}
+                                        className="block rounded px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-amber-50"
+                                    >
+                                        プロフィール編集
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    )}
                     <p className="text-xs uppercase tracking-[0.4em] text-amber-700">User</p>
                     <h1 className="font-yuGothic text-2xl font-bold">{profile.name}</h1>
                     <dl className="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
